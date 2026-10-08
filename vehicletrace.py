@@ -1,7 +1,11 @@
+
 #!/usr/bin/env python3
 
 import re
 import json
+import uuid
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 print("""
 ====================================
@@ -11,6 +15,11 @@ print("""
 """)
 
 vehicle_number = input("[?] Enter vehicle number: ")
+investigation_id = str(uuid.uuid4())[:8].upper()
+timestamp = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S")
+
+print("\n[+] Investigation ID:", investigation_id)
+print("[+] Timestamp:", timestamp)
 
 vehicle_number = vehicle_number.replace(" ", "").upper()
 
