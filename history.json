@@ -3,5 +3,10 @@
         "investigation_id": "7CAA7C1D",
         "timestamp": "2026-10-09 21:29:39",
         "vehicle_number": "UP85AB1234"
+    },
+    {
+        "investigation_id": "4BDD8056",
+        "timestamp": "2026-10-10 11:50:35",
+        "vehicle_number": "UP85AB1234"
     }
 ]
