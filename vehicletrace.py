@@ -13,8 +13,21 @@ def view_history():
     print("       VehicleTrace History")
     print("====================================")
 
-    with open("history.json", "r") as file:
-        history = json.load(file)
+    try:
+        with open("history.json", "r") as file:
+            history = json.load(file)
+
+        if not isinstance(history, list):
+            print("\n[-] History data format is invalid")
+            return
+
+    except FileNotFoundError:
+        print("\n[-] History file not found")
+        return
+
+    except json.JSONDecodeError:
+        print("\n[-] History file is corrupted")
+        return
 
     if not history:
         print("\n[-] No search history found")
@@ -45,8 +58,21 @@ def search_vehicle():
     print("[+] Timestamp:", timestamp)
     print("[+] Valid vehicle number")
 
-    with open("vehicles.json", "r") as file:
-        vehicles = json.load(file)
+    try:
+        with open("vehicles.json", "r") as file:
+            vehicles = json.load(file)
+
+        if not isinstance(vehicles, dict):
+            print("\n[-] Vehicle database format is invalid")
+            return
+
+    except FileNotFoundError:
+        print("\n[-] Vehicle database file not found")
+        return
+
+    except json.JSONDecodeError:
+        print("\n[-] Vehicle database is corrupted")
+        return
 
     if vehicle_number not in vehicles:
         print("\n[-] Vehicle not found in database")
@@ -60,22 +86,39 @@ def search_vehicle():
         "vehicle_number": vehicle_number
     }
 
-    with open("history.json", "r") as file:
-        history = json.load(file)
+    try:
+        with open("history.json", "r") as file:
+            history = json.load(file)
+
+        if not isinstance(history, list):
+            print("\n[-] History data format is invalid")
+            return
+
+    except FileNotFoundError:
+        history = []
+
+    except json.JSONDecodeError:
+        print("\n[-] History file is corrupted. Search not saved.")
+        return
 
     history.append(history_entry)
 
-    with open("history.json", "w") as file:
-        json.dump(history, file, indent=4)
+    try:
+        with open("history.json", "w") as file:
+            json.dump(history, file, indent=4)
+
+    except OSError:
+        print("\n[-] Could not save search history")
+        return
 
     print("\n[+] Vehicle Found")
     print("----------------------------")
-    print("RTO          :", data["rto"])
-    print("Manufacturer :", data["manufacturer"])
-    print("Model        :", data["model"])
-    print("Fuel         :", data["fuel"])
-    print("Status       :", data["status"])
-    print("PUC          :", data["puc"])
+    print("RTO          :", data.get("rto", "Unknown"))
+    print("Manufacturer :", data.get("manufacturer", "Unknown"))
+    print("Model        :", data.get("model", "Unknown"))
+    print("Fuel         :", data.get("fuel", "Unknown"))
+    print("Status       :", data.get("status", "Unknown"))
+    print("PUC          :", data.get("puc", "Unknown"))
     print("\n[+] Search saved to history")
 
 
@@ -95,10 +138,13 @@ while True:
 
     if choice == "1":
         search_vehicle()
+
     elif choice == "2":
         view_history()
+
     elif choice == "3":
         print("\n[+] Exiting VehicleTrace. Goodbye!")
         break
+
     else:
         print("\n[-] Invalid option. Choose 1, 2 or 3.")
