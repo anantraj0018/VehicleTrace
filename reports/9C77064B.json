@@ -1,0 +1,14 @@
+{
+    "investigation_id": "9C77064B",
+    "timestamp": "2026-10-13 19:36:49",
+    "vehicle_number": "UP85AB1234",
+    "source": "Local sample database",
+    "vehicle_details": {
+        "rto": "Mathura",
+        "manufacturer": "Hyundai",
+        "model": "i20",
+        "fuel": "Petrol",
+        "status": "Active",
+        "puc": "Valid"
+    }
+}

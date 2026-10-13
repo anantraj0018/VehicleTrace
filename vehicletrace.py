@@ -4,8 +4,15 @@
 import re
 import json
 import uuid
+import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+
+def get_timestamp():
+    return datetime.now(
+        ZoneInfo("Asia/Kolkata")
+    ).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def view_history():
@@ -24,7 +31,6 @@ def view_history():
     except FileNotFoundError:
         print("\n[-] History file not found")
         return
-
     except json.JSONDecodeError:
         print("\n[-] History file is corrupted")
         return
@@ -50,7 +56,7 @@ def view_history():
         filtered_history = [
             entry for entry in history
             if isinstance(entry, dict)
-            and entry.get("vehicle_number", "").upper() == number
+            and str(entry.get("vehicle_number", "")).upper() == number
         ]
 
     else:
@@ -67,6 +73,21 @@ def view_history():
         print(f"   Timestamp: {entry.get('timestamp', 'Unknown')}")
 
 
+def save_report(report):
+    os.makedirs("reports", exist_ok=True)
+
+    filename = f"reports/{report['investigation_id']}.json"
+
+    try:
+        with open(filename, "w") as file:
+            json.dump(report, file, indent=4)
+
+        print("\n[+] Investigation report saved:", filename)
+
+    except OSError:
+        print("\n[-] Could not save investigation report")
+
+
 def search_vehicle():
     vehicle_number = input("\n[?] Enter vehicle number: ")
     vehicle_number = vehicle_number.replace(" ", "").upper()
@@ -78,10 +99,7 @@ def search_vehicle():
         return
 
     investigation_id = str(uuid.uuid4())[:8].upper()
-
-    timestamp = datetime.now(
-        ZoneInfo("Asia/Kolkata")
-    ).strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = get_timestamp()
 
     print("\n[+] Investigation ID:", investigation_id)
     print("[+] Timestamp:", timestamp)
@@ -98,7 +116,6 @@ def search_vehicle():
     except FileNotFoundError:
         print("\n[-] Vehicle database file not found")
         return
-
     except json.JSONDecodeError:
         print("\n[-] Vehicle database is corrupted")
         return
@@ -108,6 +125,14 @@ def search_vehicle():
         return
 
     data = vehicles[vehicle_number]
+
+    report = {
+        "investigation_id": investigation_id,
+        "timestamp": timestamp,
+        "vehicle_number": vehicle_number,
+        "source": "Local sample database",
+        "vehicle_details": data
+    }
 
     history_entry = {
         "investigation_id": investigation_id,
@@ -125,7 +150,6 @@ def search_vehicle():
 
     except FileNotFoundError:
         history = []
-
     except json.JSONDecodeError:
         print("\n[-] History file is corrupted. Search not saved.")
         return
@@ -148,7 +172,8 @@ def search_vehicle():
     print("Fuel         :", data.get("fuel", "Unknown"))
     print("Status       :", data.get("status", "Unknown"))
     print("PUC          :", data.get("puc", "Unknown"))
-    print("\n[+] Search saved to history")
+
+    save_report(report)
 
 
 print("""
@@ -167,13 +192,10 @@ while True:
 
     if choice == "1":
         search_vehicle()
-
     elif choice == "2":
         view_history()
-
     elif choice == "3":
         print("\n[+] Exiting VehicleTrace. Goodbye!")
         break
-
     else:
         print("\n[-] Invalid option. Choose 1, 2 or 3.")

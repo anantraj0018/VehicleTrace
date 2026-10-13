@@ -13,5 +13,10 @@
         "investigation_id": "B34E8424",
         "timestamp": "2026-10-11 12:08:51",
         "vehicle_number": "UP85AB1234"
+    },
+    {
+        "investigation_id": "9C77064B",
+        "timestamp": "2026-10-13 19:36:49",
+        "vehicle_number": "UP85AB1234"
     }
 ]
