@@ -74,18 +74,94 @@ def view_history():
 
 
 def save_report(report):
-    os.makedirs("reports", exist_ok=True)
-
-    filename = f"reports/{report['investigation_id']}.json"
-
     try:
+        os.makedirs("reports", exist_ok=True)
+
+        filename = f"reports/{report['investigation_id']}.json"
+
         with open(filename, "w") as file:
             json.dump(report, file, indent=4)
 
         print("\n[+] Investigation report saved:", filename)
 
-    except OSError:
+    except (OSError, KeyError):
         print("\n[-] Could not save investigation report")
+
+
+def view_report():
+    print("\n====================================")
+    print("       Investigation Reports")
+    print("====================================")
+
+    try:
+        files = sorted(
+            filename for filename in os.listdir("reports")
+            if filename.endswith(".json")
+        )
+
+    except FileNotFoundError:
+        print("\n[-] Reports folder not found")
+        return
+    except OSError:
+        print("\n[-] Could not access reports folder")
+        return
+
+    if not files:
+        print("\n[-] No investigation reports found")
+        return
+
+    print("\nAvailable Reports:")
+
+    for i, filename in enumerate(files, start=1):
+        print(f"{i}. {filename}")
+
+    choice = input("\n[?] Enter report number: ")
+
+    if not choice.isdigit():
+        print("\n[-] Invalid choice. Enter a number.")
+        return
+
+    index = int(choice) - 1
+
+    if index < 0 or index >= len(files):
+        print("\n[-] Report not found")
+        return
+
+    filepath = os.path.join("reports", files[index])
+
+    try:
+        with open(filepath, "r") as file:
+            report = json.load(file)
+
+        if not isinstance(report, dict):
+            print("\n[-] Report data format is invalid")
+            return
+
+        print("\n========== Investigation Report ==========")
+        print("Investigation ID :", report.get("investigation_id", "Unknown"))
+        print("Timestamp        :", report.get("timestamp", "Unknown"))
+        print("Vehicle Number   :", report.get("vehicle_number", "Unknown"))
+        print("Source           :", report.get("source", "Unknown"))
+
+        details = report.get("vehicle_details", {})
+
+        if not isinstance(details, dict):
+            print("\n[-] Vehicle details format is invalid")
+            return
+
+        print("\nVehicle Details")
+        print("------------------------------------------")
+        print("RTO          :", details.get("rto", "Unknown"))
+        print("Manufacturer :", details.get("manufacturer", "Unknown"))
+        print("Model        :", details.get("model", "Unknown"))
+        print("Fuel         :", details.get("fuel", "Unknown"))
+        print("Status       :", details.get("status", "Unknown"))
+        print("PUC          :", details.get("puc", "Unknown"))
+
+    except json.JSONDecodeError:
+        print("\n[-] Report file is corrupted")
+    except OSError:
+        print("\n[-] Could not read report file")
 
 
 def search_vehicle():
@@ -97,13 +173,6 @@ def search_vehicle():
     if not re.match(pattern, vehicle_number):
         print("\n[-] Invalid vehicle number")
         return
-
-    investigation_id = str(uuid.uuid4())[:8].upper()
-    timestamp = get_timestamp()
-
-    print("\n[+] Investigation ID:", investigation_id)
-    print("[+] Timestamp:", timestamp)
-    print("[+] Valid vehicle number")
 
     try:
         with open("vehicles.json", "r") as file:
@@ -125,6 +194,17 @@ def search_vehicle():
         return
 
     data = vehicles[vehicle_number]
+
+    if not isinstance(data, dict):
+        print("\n[-] Vehicle record format is invalid")
+        return
+
+    investigation_id = str(uuid.uuid4())[:8].upper()
+    timestamp = get_timestamp()
+
+    print("\n[+] Investigation ID:", investigation_id)
+    print("[+] Timestamp:", timestamp)
+    print("[+] Valid vehicle number")
 
     report = {
         "investigation_id": investigation_id,
@@ -186,7 +266,8 @@ print("""
 while True:
     print("\n1. Search Vehicle")
     print("2. View Search History")
-    print("3. Exit")
+    print("3. View Investigation Report")
+    print("4. Exit")
 
     choice = input("\n[?] Choose an option: ")
 
@@ -195,7 +276,9 @@ while True:
     elif choice == "2":
         view_history()
     elif choice == "3":
+        view_report()
+    elif choice == "4":
         print("\n[+] Exiting VehicleTrace. Goodbye!")
         break
     else:
-        print("\n[-] Invalid option. Choose 1, 2 or 3.")
+        print("\n[-] Invalid option. Choose 1, 2, 3 or 4.")
